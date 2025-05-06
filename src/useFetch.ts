@@ -1,17 +1,35 @@
 import { useEffect, useState } from 'react';
 
-interface fetchParams {
+interface FetchParams {
 	params: { _limit: number };
 }
 
-export function useFetch(url: string) {
-	const [data, setData] = useState([]);
+interface Post {
+	userId: number;
+	id: number;
+	title: string;
+	body: string;
+}
+
+export function useFetch(url: string, limit: number = 3) {
+	const [dataFromServer, setDataFromServer] = useState<Post[]>([]);
+	const [data, setData] = useState<Post[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(false);
+	const [currentIndex, setCurrentIndex] = useState(0);
 
-	function refetch(paramsObj: fetchParams) {
-        console.log(paramsObj)
-    }
+	function refetch(paramsObj: FetchParams) {
+		if (!dataFromServer.length) return;
+		const limit = paramsObj?.params?._limit || 3;
+
+		setData(dataFromServer.slice(currentIndex, currentIndex + limit));
+
+		if (dataFromServer.length - currentIndex - limit > 0) {
+			setCurrentIndex((prev) => prev + limit);
+		} else {
+			setCurrentIndex(0);
+		}
+	}
 
 	useEffect(() => {
 		setIsLoading(true);
@@ -28,13 +46,17 @@ export function useFetch(url: string) {
 			.then((response) => {
 				setIsLoading(false);
 				setError(false);
-				setData(response);
+				setDataFromServer(response);
+				setData(response.slice(0, limit));
+				if (response.length > limit) {
+					setCurrentIndex(limit);
+				}
 			})
 			.catch(() => {
 				setIsLoading(false);
 				setError(true);
 			});
-	}, [url]);
+	}, [url, limit]);
 
 	return {
 		data,

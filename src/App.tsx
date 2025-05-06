@@ -1,19 +1,19 @@
 
 import './App.css'
 
-// import { useFetch } from './useFetch';
+import { useFetch } from './useFetch';
 
 function App() {
-  // const {
-  //   data,
-  //   isLoading,
-  //   error,
-  //   refetch
-  // } = useFetch('https://jsonplaceholder.typicode.com/posts');
+  const {
+    data,
+    isLoading,
+    error,
+    refetch
+  } = useFetch('https://jsonplaceholder.typicode.com/posts');
   
   return (
     <div>
-      {/* <div>
+      <div>
         <button onClick={() => refetch({
           params: {
             _limit: 3
@@ -24,7 +24,7 @@ function App() {
       </div>
       {isLoading && 'Загрузка...'}
       {error && 'Произошла ошибка'}
-      {data && !isLoading && data.map(item => <div key={item.id}>{item.title}</div>) } */}
+      {data && !isLoading && data.map(item => <div key={item.id}>{item.title}</div>) }
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface FetchParams {
 	params: { _limit: number };
@@ -12,29 +12,14 @@ interface Post {
 }
 
 export function useFetch(url: string, limit: number = 3) {
-	const [dataFromServer, setDataFromServer] = useState<Post[]>([]);
 	const [data, setData] = useState<Post[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(false);
-	const [currentIndex, setCurrentIndex] = useState(0);
 
-	function refetch(paramsObj: FetchParams) {
-		if (!dataFromServer.length) return;
-		const limit = paramsObj?.params?._limit || 3;
-
-		setData(dataFromServer.slice(currentIndex, currentIndex + limit));
-
-		if (dataFromServer.length - currentIndex - limit > 0) {
-			setCurrentIndex((prev) => prev + limit);
-		} else {
-			setCurrentIndex(0);
-		}
-	}
-
-	useEffect(() => {
+	const  fetchData = useCallback((limit: number = 3) => {
 		setIsLoading(true);
 		setError(false);
-		fetch(url)
+		fetch(`${url}?_limit=${limit}`)
 			.then((responseJson) => {
 				if (!responseJson.ok) {
 					setIsLoading(false);
@@ -45,18 +30,24 @@ export function useFetch(url: string, limit: number = 3) {
 			})
 			.then((response) => {
 				setIsLoading(false);
-				setError(false);
-				setDataFromServer(response);
-				setData(response.slice(0, limit));
-				if (response.length > limit) {
-					setCurrentIndex(limit);
-				}
+				setError(false);			
+				setData(response);
+		
 			})
 			.catch(() => {
 				setIsLoading(false);
 				setError(true);
 			});
-	}, [url, limit]);
+	}, [url])
+
+	function refetch(paramsObj: FetchParams) {
+		const limit = paramsObj?.params?._limit || 3;
+		fetchData(limit)
+	}
+
+	useEffect(() => {
+		fetchData()
+	}, [url, limit, fetchData]);
 
 	return {
 		data,
